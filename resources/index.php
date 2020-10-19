@@ -1,15 +1,19 @@
 <?php
 declare(strict_types=1);
 
+ini_set('display_errors', '1');
+ini_set('display_startup_errors', '1');
+error_reporting(E_ALL);
+
 $sports = ['Football', 'Tennis', 'Ping pong', 'Volley ball', 'Rugby', 'Horse riding', 'Swimming', 'Judo', 'Karate'];
 
 function openConnection(): PDO
 {
     // No bugs in this function, just use the right credentials.
-    $dbhost = "DB_HOST";
-    $dbuser = "DB_USER";
-    $dbpass = "DB_USER_PASSWORD";
-    $db = "DB_NAME";
+    $dbhost = "localhost";
+    $dbuser = "becode";
+    $dbpass = "becode123";
+    $db = "fixbug";
 
     $driverOptions = [
         PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES 'utf8'",
@@ -24,12 +28,12 @@ $pdo = openConnection();
 
 if(!empty($_POST['firstname']) && !empty($_POST['lastname'])) {
     //@todo possible bug below?
-    if(!empty($_POST['id'])) {
+    if(empty($_POST['id'])) {
         $handle = $pdo->prepare('INSERT INTO user (firstname, lastname, year) VALUES (:firstname, :lastname, :year)');
         $message = 'Your record has been added';
     } else {
         //@todo why does this not work?
-        $handle = $pdo->prepare('UPDATE user VALUES (firstname = :firstname, lastname = :lastname, year = :year) WHERE id = :id');
+        $handle = $pdo->prepare('UPDATE user SET (firstname = :firstname, lastname = :lastname, year = :year) WHERE id = :id');
         $handle->bindValue(':id', $_POST['id']);
         $message = 'Your record has been updated';
     }
