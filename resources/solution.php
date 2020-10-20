@@ -6,10 +6,14 @@ $sports = ['Football', 'Tennis', 'Ping pong', 'Volley ball', 'Rugby', 'Horse rid
 function openConnection(): PDO
 {
     // No bugs in this function, just use the right credentials.
-    $dbhost = "DB_HOST";
+    /*$dbhost = "DB_HOST";
     $dbuser = "DB_USER";
     $dbpass = "DB_USER_PASSWORD";
-    $db = "DB_NAME";
+    $db = "DB_NAME";*/
+    $dbhost = "localhost";
+    $dbuser = "root";
+    $dbpass = "";
+    $db = "dbintro";
 
     $driverOptions = [
         PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES 'utf8'",
@@ -24,12 +28,11 @@ $pdo = openConnection();
 
 if(!empty($_POST['firstname']) && !empty($_POST['lastname'])) {
     //@todo possible bug below?
-    if(!empty($_POST['id'])) {
+    if(empty($_POST['id'])) {//switched if statement
         $handle = $pdo->prepare('INSERT INTO user (firstname, lastname, year) VALUES (:firstname, :lastname, :year)');
         $message = 'Your record has been added';
     } else {
-        //@todo why does this not work?
-        $handle = $pdo->prepare('UPDATE user VALUES (firstname = :firstname, lastname = :lastname, year = :year) WHERE id = :id');
+        $handle = $pdo->prepare('UPDATE user SET firstname = :firstname, lastname = :lastname, year = :year WHERE id = :id');//@todo change VALUES to SET
         $handle->bindValue(':id', $_POST['id']);
         $message = 'Your record has been updated';
     }
@@ -40,18 +43,17 @@ if(!empty($_POST['firstname']) && !empty($_POST['lastname'])) {
     $handle->execute();
 
     if(!empty($_POST['id'])) {
-        $handle = $pdo->prepare('DELETE FROM sport WHERE user_id = :id');
+        $handle = $pdo->prepare('DELETE FROM sport WHERE user_id = :id');//@todo: change where id to where user_id
         $handle->bindValue(':id', $_POST['id']);
         $handle->execute();
         $userId = $_POST['id'];
     } else {
+        //@todo The last insertId needs to be moved from the foreach below to this else. Now it will fetch the ID of the last inserted sport.
+        $userId = $pdo->lastInsertId();
         //why did I leave this if empty? There must be no important reason for this. Move on.
     }
 
-    //@todo Why does this loop not work? If only I could see the bigger picture.
     foreach($_POST['sports'] AS $sport) {
-        $userId = $pdo->lastInsertId();
-
         $handle = $pdo->prepare('INSERT INTO sport (user_id, sport) VALUES (:userId, :sport)');
         $handle->bindValue(':userId', $userId);
         $handle->bindValue(':sport', $sport);
@@ -59,17 +61,16 @@ if(!empty($_POST['firstname']) && !empty($_POST['lastname'])) {
     }
 }
 elseif(isset($_POST['delete'])) {
-    //@todo BUG? Why does always delete all my users?
-    $handle = $pdo->prepare('DELETE FROM user');
-    //The line below just gave me an error, probably not important. Annoying line.
-    //$handle->bindValue(':id', $_POST['id']);
+    $handle = $pdo->prepare('DELETE FROM user WHERE id = :id');//@todo Forgot WHERE id = :id
+    $handle->bindValue(':id', $_POST['id']);
     $handle->execute();
 
     $message = 'Your record has been deleted';
 }
 
-//@todo Invalid query?
-$handle = $pdo->prepare('SELECT id, concat_ws(firstname, lastname, " ") AS name, sport FROM user LEFT JOIN sport ON id = sport.user_id where year = :year order by sport');
+//@todo: make id ambiguous -> needs to be select user.id
+//@todo switched concat_ws(" ", firstname, lastname) to wrong order concat_ws(irstname, lastname, " ")
+$handle = $pdo->prepare('SELECT user.id, concat_ws(" ", firstname, lastname) AS name, sport FROM user LEFT JOIN sport ON user.id = sport.user_id where year = :year order by sport');
 $handle->bindValue(':year', date('Y'));
 $handle->execute();
 $users = $handle->fetchAll();
@@ -83,13 +84,13 @@ if(!empty($_GET['id'])) {
     $handle->execute();
     $selectedUser = $handle->fetch();
 
-    //This segment checks all the current sports for an existing user when you update him. Currently that is not working however. :-(
+    //This segment marks all the checkboxes with all the current sports for an existing user when you update him. Currently that is not working however. :-(
     $selectedUser['sports'] = [];
     $handle = $pdo->prepare('SELECT sport FROM sport where user_id = :id');
     $handle->bindValue(':id', $_GET['id']);
     $handle->execute();
     foreach($handle->fetchAll() AS $sport) {
-        $selectedUser['sports'][] = $sport;//@todo I just want an array of all sports of this, why is it not working?
+        $selectedUser['sports'][] = $sport['sport'];//@todo I just want an array of all sports of this, why is it not working?
     }
 }
 
@@ -102,5 +103,5 @@ if(empty($selectedUser['id'])) {
     ];
 }
 
+
 require 'view.php';
-// All bugs where written with Love for the learning Process. No actual bugs where harmed or eaten during the creation of this code.
