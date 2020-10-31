@@ -18,7 +18,7 @@ After reading some theory, you will do a small exercise to discover your new sup
 
 ## A small exercise: fix the bugs
 Your coach has probably helped you to fix some bugs in your code base during the training, and we think it is only fair to now return the favor.
-Your coach has written [a small script](resources/index.php) that manages users and their favorite sports.
+Your coach has written [a small script](index.php) that manages users and their favorite sports.
 However your coach drank a little bit too much of his favorite drink (this is an excellent moment to ask him/her what this beverage is), and the script is littered with bugs.
 The coach has added some comments where these bugs are, but has given up on fixing them.
 Can you fix all the bugs?

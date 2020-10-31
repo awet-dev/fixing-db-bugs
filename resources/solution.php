@@ -69,7 +69,7 @@ elseif(isset($_POST['delete'])) {
 }
 
 //@todo: make id ambiguous -> needs to be select user.id
-//@todo switched concat_ws(" ", firstname, lastname) to wrong order concat_ws(irstname, lastname, " ")
+//@todo switched concat_ws(" ", firstname, lastname) to wrong order concat_ws(firstname, lastname, " ")
 $handle = $pdo->prepare('SELECT user.id, concat_ws(" ", firstname, lastname) AS name, sport FROM user LEFT JOIN sport ON user.id = sport.user_id where year = :year order by sport');
 $handle->bindValue(':year', date('Y'));
 $handle->execute();
@@ -78,7 +78,6 @@ $users = $handle->fetchAll();
 $saveLabel = 'Save record';
 if(!empty($_GET['id'])) {
     $saveLabel = 'Update record';
-
     $handle = $pdo->prepare('SELECT id, firstname, lastname FROM user where id = :id');
     $handle->bindValue(':id', $_GET['id']);
     $handle->execute();
